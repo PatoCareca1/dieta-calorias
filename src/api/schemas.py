@@ -4,20 +4,29 @@ from typing import Optional
 
 # ----- Usuário -----
 class UsuarioCreate(BaseModel):
-    nome: str = Field(..., example="Ana Silva")
+    nome: str
     email: EmailStr
-    senha: str = Field(..., min_length=6)
+    senha: str
     peso: float
     altura: float
     meta_calorica_diaria: int
 
-class UsuarioRead(BaseModel):
+    class Config:
+        orm_mode = True
+
+class UsuarioRead(UsuarioCreate):
     id_usuario: int
-    nome: str
-    email: EmailStr
-    peso: float
-    altura: float
-    meta_calorica_diaria: int
+
+    class Config:
+        orm_mode = True
+
+class UsuarioUpdate(BaseModel):
+    nome: Optional[str] = None
+    email: Optional[EmailStr] = None
+    senha: Optional[str] = None
+    peso: Optional[float] = None
+    altura: Optional[float] = None
+    meta_calorica_diaria: Optional[int] = None
 
     class Config:
         orm_mode = True
