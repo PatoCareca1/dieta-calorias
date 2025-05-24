@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date
+from typing import Optional
 
 # ----- Usuário -----
 class UsuarioCreate(BaseModel):
@@ -52,6 +53,18 @@ class RefeicaoCreate(BaseModel):
 
 class RefeicaoRead(RefeicaoCreate):
     id_refeicao: int
+
+    class Config:
+        orm_mode = True
+
+# ----- ItemRefeição -----
+class ItemRefeicaoCreate(BaseModel):
+    id_refeicao: int
+    id_alimento: int
+    quantidade_em_gramas: float
+
+class ItemRefeicaoRead(ItemRefeicaoCreate):
+    id_item: int
 
     class Config:
         orm_mode = True
