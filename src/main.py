@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 # Base e engine
 from src.database import Base, engine  
-from src.api.routers import users, calorias, alimentos
+from src.api.routers import users, calorias, alimentos, refeicoes
 
 app = FastAPI(title="API Dieta-Calorias", version="0.1.0")
 
@@ -11,6 +11,7 @@ app = FastAPI(title="API Dieta-Calorias", version="0.1.0")
 app.include_router(users.router)
 app.include_router(calorias.router)
 app.include_router(alimentos.router)
+app.include_router(refeicoes.router)
 
 @app.on_event("startup")
 def on_startup():

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import date
 
 # ----- Usuário -----
 class UsuarioCreate(BaseModel):
@@ -39,6 +40,18 @@ class AlimentoCreate(BaseModel):
 
 class AlimentoRead(AlimentoCreate):
     id_alimento: int
+
+    class Config:
+        orm_mode = True
+
+# ----- Refeição -----
+class RefeicaoCreate(BaseModel):
+    user_id: int
+    data: date
+    tipo_refeicao: str
+
+class RefeicaoRead(RefeicaoCreate):
+    id_refeicao: int
 
     class Config:
         orm_mode = True
