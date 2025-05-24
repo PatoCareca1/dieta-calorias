@@ -1,47 +1,47 @@
-# tests/conftest.py
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import src.database as database
-from src.database import Base
+from src.main import app
+from src.database import Base, get_db, engine, SessionLocal
+from src.database import DATABASE_URL
 
-@pytest.fixture(autouse=True)
-def setup_in_memory_db():
-    """
-    Antes de cada teste:
-     - cria um engine in-memory
-     - substitui o engine e o SessionLocal do seu código
-     - recria todo o esquema (drop + create)
-    """
-    # 1) cria engine fresh em memória
-    test_engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False}
-    )
+# Vamos usar um SQLite em memória só para os testes de integração
+TEST_DATABASE_URL = "sqlite:///:memory:"
 
-    # 2) override no módulo src.database
-    database.engine = test_engine
-    database.SessionLocal = sessionmaker(
-        bind=test_engine,
-        autoflush=False,
-        autocommit=False
-    )
+engine = create_engine(
+    TEST_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 
-    # 3) drop/cria esquema limpo
-    Base.metadata.drop_all(bind=test_engine)
-    Base.metadata.create_all(bind=test_engine)
-
-    yield
-    # (não precisa dropar depois, a memória some ao final de cada teste)
-
-@pytest.fixture
-def db():
-    """
-    Sessão que seus testes vão usar.
-    """
-    session = database.SessionLocal()
+# Sobrescreve a dependência de get_db para usar nossa sessão de teste
+def override_get_db():
+    db = TestingSessionLocal()
     try:
-        yield session
+        yield db
     finally:
-        session.close()
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
+
+@pytest.fixture(scope="module")
+def client():
+    # Cria todas as tabelas antes de começar
+    Base.metadata.create_all(bind=engine)
+    with TestClient(app) as c:
+        yield c
+    # E derruba tudo quando acabar
+    Base.metadata.drop_all(bind=engine)
+
+@pytest.fixture(scope="module")
+def db():
+    # cria as tabelas
+    Base.metadata.create_all(bind=engine)
+    session = SessionLocal()
+    yield session
+    session.close()
+    # limpa após os testes
+    Base.metadata.drop_all(bind=engine)

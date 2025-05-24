@@ -51,8 +51,11 @@ class RefeicaoCreate(BaseModel):
     data: date
     tipo_refeicao: str
 
-class RefeicaoRead(RefeicaoCreate):
+class RefeicaoRead(BaseModel):
     id_refeicao: int
+    id_usuario: int
+    data: date
+    tipo_refeicao: str
 
     class Config:
         orm_mode = True
