@@ -27,3 +27,18 @@ class ResumoDiario(BaseModel):
     data: date
     total_calorias: float
     status: str = Field(..., example="dentro")
+
+# ----- Alimento -----
+
+class AlimentoCreate(BaseModel):
+    nome: str
+    calorias_por_100g: float
+    proteinas: float
+    carboidratos: float
+    gorduras: float
+
+class AlimentoRead(AlimentoCreate):
+    id_alimento: int
+
+    class Config:
+        orm_mode = True
