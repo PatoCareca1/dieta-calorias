@@ -2,8 +2,9 @@
 import uvicorn
 from fastapi import FastAPI
 # Base e engine
-from src.database import Base, engine  
 from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao
+import src.database as database
+from src.database import Base
 
 app = FastAPI(title="API Dieta-Calorias", version="0.1.0")
 
@@ -17,11 +18,8 @@ app.include_router(itens_refeicao.router)
 
 @app.on_event("startup")
 def on_startup():
-    """
-    Cria (se não existirem) todas as tabelas do nosso ORM
-    sempre que a aplicação iniciar.
-    """
-    Base.metadata.create_all(bind=engine)
+    # cria todas as tabelas no engine atual em database.engine
+    Base.metadata.create_all(bind=database.engine)
 
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
