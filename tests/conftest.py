@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.main import app
-from src.database import Base, get_db, engine, SessionLocal
+from src.database import Base, get_db, engine, SessionLocal, database
 from src.database import DATABASE_URL
 
 # Vamos usar um SQLite em memória só para os testes de integração
@@ -16,6 +16,23 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine
 )
+
+@pytest.fixture(autouse=True)
+def setup_in_memory_db():
+    """
+    Para cada teste, sobrescreve o engine/SessionLocal
+    para um SQLite em memória, recria e depois dropa as tabelas.
+    """
+    # cria engine em memória
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    # ajusta o módulo database para usar esse engine
+    database.engine = engine
+    database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    # cria tabelas
+    Base.metadata.create_all(bind=engine)
+    yield
+    # limpa ao final
+    Base.metadata.drop_all(bind=engine)
 
 # Sobrescreve a dependência de get_db para usar nossa sessão de teste
 def override_get_db():

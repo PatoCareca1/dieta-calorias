@@ -22,8 +22,7 @@ class UsuarioRead(BaseModel):
     class Config:
         orm_mode = True
 
-# ----- Calorias (exemplo de endpoint de resumo diário) -----
-from datetime import date
+# ----- Calorias  -----
 
 class ResumoDiario(BaseModel):
     data: date

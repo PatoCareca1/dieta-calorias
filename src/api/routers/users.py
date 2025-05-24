@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from src.crud.usuario import (
-    create_user, get_user_by_email
+    create_user, get_user_by_email, delete_user, get_user_by_id,
 )
 from src.api.dependencies import get_db
 from src.api.schemas import UsuarioCreate, UsuarioRead
@@ -25,3 +25,11 @@ def api_get_user(user_id: int, db: Session = Depends(get_db)):
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return usuario
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def api_delete_user(user_id: int, db: Session = Depends(get_db)):
+    usuario = get_user_by_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    delete_user(db, usuario)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
