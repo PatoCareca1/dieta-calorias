@@ -36,9 +36,15 @@ def update_user(db: Session, user: Usuario, **kwargs) -> Usuario:
     db.refresh(user)
     return user
 
-def delete_user(db: Session, user: Usuario) -> None:
-    """
-    Remove o usuário do banco.
-    """
-    db.delete(user)
+def delete_user(db: Session, user):
+    # aceita tanto user_id: int quanto instância Usuario
+    if isinstance(user, Usuario):
+        user_id = user.id_usuario
+    else:
+        user_id = user
+
+    db.query(Usuario).filter(Usuario.id_usuario == user_id).delete()
     db.commit()
+
+def get_user_by_id(db: Session, user_id: int) -> Usuario | None:
+    return db.query(Usuario).filter(Usuario.id_usuario == user_id).first()
