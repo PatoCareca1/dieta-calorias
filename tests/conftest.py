@@ -1,42 +1,44 @@
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import src.database as database
+from src.database import Base
+
+from fastapi.testclient import TestClient
 from src.main import app
-from src.database import Base, get_db, engine, SessionLocal, database
-from src.database import DATABASE_URL
+from src.api.dependencies import get_db
 
-# Vamos usar um SQLite em memória só para os testes de integração
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    TEST_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
-
+# --- 1. Fixture autouse para usar um SQLite em memória em TODOS os testes ---
 @pytest.fixture(autouse=True)
 def setup_in_memory_db():
     """
-    Para cada teste, sobrescreve o engine/SessionLocal
-    para um SQLite em memória, recria e depois dropa as tabelas.
+    Cria engine e SessionLocal em memória, recria as tabelas antes de cada teste
+    e as apaga ao final.
     """
-    # cria engine em memória
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    # ajusta o módulo database para usar esse engine
+    # 1) monta engine em memória
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False}
+    )
+    # 2) ajusta o módulo database para usar esse engine
+    TestingSessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine
+    )
     database.engine = engine
-    database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    # cria tabelas
+    database.SessionLocal = TestingSessionLocal
+
+    # 3) cria todas as tabelas
     Base.metadata.create_all(bind=engine)
     yield
-    # limpa ao final
+    # 4) limpa TODAS as tabelas no fim
     Base.metadata.drop_all(bind=engine)
 
-# Sobrescreve a dependência de get_db para usar nossa sessão de teste
+# --- 2. Override do get_db para o TestClient (integração) ---
 def override_get_db():
-    db = TestingSessionLocal()
+    db = database.SessionLocal()
     try:
         yield db
     finally:
@@ -44,21 +46,8 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-@pytest.fixture(scope="module")
+# --- 3. Fixture do cliente de teste ---
+@pytest.fixture
 def client():
-    # Cria todas as tabelas antes de começar
-    Base.metadata.create_all(bind=engine)
     with TestClient(app) as c:
         yield c
-    # E derruba tudo quando acabar
-    Base.metadata.drop_all(bind=engine)
-
-@pytest.fixture(scope="module")
-def db():
-    # cria as tabelas
-    Base.metadata.create_all(bind=engine)
-    session = SessionLocal()
-    yield session
-    session.close()
-    # limpa após os testes
-    Base.metadata.drop_all(bind=engine)
