@@ -55,7 +55,7 @@ dieta-calorias/
 1. Clone o repositório:
 
    ```bash
-   git clone https://github.com/seu-usuario/dieta-calorias.git
+   git clone https://github.com/PatoCareca1/dieta-calorias.git
    cd dieta-calorias
    ```
 2. Crie um ambiente virtual e instale as dependências:
