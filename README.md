@@ -73,13 +73,13 @@ dieta-calorias/
    ```
 4. Acesse a documentação interativa em: `http://127.0.0.1:8000/docs`
 
-### Utilizando o Swagger UI
+# Utilizando o Swagger UI
 
 No Swagger você poderá visualizar, testar e interagir com todos os endpoints (rotas) disponíveis.
 
 ## Exemplo prático para CRUD de Usuários:
 
-# Criar um Usuário
+### Criar um Usuário
 
 Procure pelo grupo /usuarios/.
 
@@ -91,7 +91,7 @@ Preencha os campos do corpo da requisição (nome, email, senha, peso, altura, m
 
 Clique em Execute.
 
-# Consultar um Usuário
+### Consultar um Usuário
 
 Clique em GET /usuarios/{user_id}.
 
@@ -99,7 +99,7 @@ Preencha o user_id do usuário que deseja consultar.
 
 Clique em Execute.
 
-# Atualizar um Usuário
+### Atualizar um Usuário
 
 Clique em PUT /usuarios/{user_id}.
 
@@ -109,7 +109,7 @@ No corpo, insira os dados que deseja atualizar.
 
 Clique em Execute.
 
-# Excluir um Usuário
+### Excluir um Usuário
 
 Clique em DELETE /usuarios/{user_id}.
 
