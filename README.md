@@ -8,10 +8,6 @@
 
 **Dieta-Calorias** é uma API RESTful construída com FastAPI e SQLAlchemy para gerenciar usuários, alimentos, refeições e calcular calorias diárias. Permite operações de CRUD completas e conta com uma calculadora de calorias por item, refeição e dia.
 
-## 📹 Demonstração em Vídeo
-
-* Link do vídeo (resolução máxima 1280×720): 
-
 ## ✅ Funcionalidades já implementadas
 
 * **Usuários**: criação, leitura, atualização e remoção.
