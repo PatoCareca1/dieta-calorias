@@ -69,63 +69,6 @@ dieta-calorias/
    ```
 4. Acesse a documentação interativa em: `http://127.0.0.1:8000/docs`
 
-### Utilizando o Swagger UI
-
-No Swagger você poderá visualizar, testar e interagir com todos os endpoints (rotas) disponíveis.
-
-## Exemplo prático para CRUD de Usuários:
-
-# Criar um Usuário
-
-Procure pelo grupo /usuarios/.
-
-Clique em POST /usuarios/
-
-Clique em Try it out (Experimentar).
-
-Preencha os campos do corpo da requisição (nome, email, senha, peso, altura, meta_calorica_diaria).
-
-Clique em Execute.
-
-# Consultar um Usuário
-
-Clique em GET /usuarios/{user_id}.
-
-Preencha o user_id do usuário que deseja consultar.
-
-Clique em Execute.
-
-# Atualizar um Usuário
-
-Clique em PUT /usuarios/{user_id}.
-
-Preencha o user_id do usuário.
-
-No corpo, insira os dados que deseja atualizar.
-
-Clique em Execute.
-
-# Excluir um Usuário
-
-Clique em DELETE /usuarios/{user_id}.
-
-Insira o user_id do usuário a ser removido.
-
-Clique em Execute.
-
-## CRUD para outros recursos
-
-O mesmo procedimento pode ser feito para Alimentos, Refeições e Itens de Refeição.
-Basta localizar o grupo de endpoints correspondente no Swagger UI.
-
-## Dicas
-
-O Swagger mostra exemplos automáticos de entrada e saída dos dados.
-
-Todas as rotas exibem possíveis códigos de resposta (sucesso, erro de validação, etc).
-
-Ótimo para testar manualmente sem precisar de outra ferramenta (Postman, Thunder Client).
-
 ## 🧪 Testes
 
 Execute a suíte de testes com:
