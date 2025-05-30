@@ -1,78 +1,69 @@
-# C:\Projetos\dieta-calorias\alembic\env.py
+# alembic/env.py
 import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config # Certifique-se que está importado
-from sqlalchemy import pool # Certifique-se que está importado
-from sqlalchemy import MetaData # Importe MetaData se for usá-lo diretamente
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
 
 from alembic import context
 
+# Adiciona o diretório raiz do projeto ao sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.models import Base # Sua Base dos modelos
+# Importar Base dos seus modelos
+from src.models import Base # Certifique-se que seus modelos completos estão aqui
 
-print("--- DEBUG env.py: Início da execução de env.py ---")
-try:
-    print(f"DEBUG env.py: Base.metadata.tables ANTES da atribuição: {list(Base.metadata.tables.keys()) if Base and Base.metadata else 'Base ou Base.metadata é None'}")
-except Exception as e:
-    print(f"DEBUG env.py: Erro (antes): {e}")
-
-config = context.config # Alembic Config object
-
-# Se a URL não estiver no config vinda do alembic.ini, pegue do seu database.py
-# Isso garante que o contexto online tenha uma URL.
-if not config.get_main_option("sqlalchemy.url"):
-    from src.database import DATABASE_URL
-    print(f"DEBUG env.py: Definindo sqlalchemy.url no config para: {DATABASE_URL}")
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config = context.config # Objeto de configuração do Alembic
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Configure target_metadata com a Base dos seus modelos
-# Este é o ponto crucial para o autogenerate
+# Definir target_metadata para o autogenerate e para o contexto
 target_metadata = Base.metadata
-
-try:
-    print(f"DEBUG env.py: target_metadata.tables DEPOIS da atribuição: {list(target_metadata.tables.keys()) if target_metadata else 'target_metadata é None'}")
-    if target_metadata:
-        for table_name, table_obj in target_metadata.tables.items():
-            print(f"  DEBUG env.py: Tabela '{table_name}': Colunas: {[c.name for c in table_obj.columns]}")
-except Exception as e:
-    print(f"DEBUG env.py: Erro (depois): {e}")
-print("--- DEBUG env.py: Fim dos prints, antes de run_migrations_offline/online ---")
+print(f"DEBUG env.py: target_metadata tabelas: {list(target_metadata.tables.keys() if target_metadata else 'None')}")
 
 def run_migrations_offline() -> None:
-    # ... (código padrão, certifique-se que usa 'target_metadata') ...
+    """Run migrations in 'offline' mode."""
+    print("DEBUG env.py: Executando run_migrations_offline")
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
-        target_metadata=target_metadata, # Importante
+        target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
     with context.begin_transaction():
         context.run_migrations()
+    print("DEBUG env.py: run_migrations_offline concluído")
 
 def run_migrations_online() -> None:
-    # ... (código padrão, certifique-se que usa 'target_metadata') ...
+    """Run migrations in 'online' mode."""
+    print("DEBUG env.py: Executando run_migrations_online")
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
     with connectable.connect() as connection:
+        print("DEBUG env.py: Conectado ao banco. Configurando contexto com transactional_ddl=False.")
         context.configure(
-            connection=connection, target_metadata=target_metadata # Importante
+            connection=connection,
+            target_metadata=target_metadata,
+            transactional_ddl=False # Chave aqui!
         )
-        with context.begin_transaction():
+        print("DEBUG env.py: Contexto configurado. Iniciando run_migrations.")
+        with context.begin_transaction(): # Mantemos para a tabela alembic_version
             context.run_migrations()
+        print("DEBUG env.py: run_migrations concluído.")
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+print("DEBUG env.py: Fim do env.py")
+    
