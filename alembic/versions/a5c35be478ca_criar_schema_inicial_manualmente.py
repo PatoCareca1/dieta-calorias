@@ -11,10 +11,19 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-# Definir os tipos ENUM do PostgreSQL que serão criados
-genero_enum_type = postgresql.ENUM('MASCULINO', 'FEMININO', 'OUTRO', 'PREFIRO_NAO_DIZER', name='generoenum', create_type=False)
-nivel_atividade_enum_type = postgresql.ENUM('SEDENTARIO', 'LEVEMENTE_ATIVO', 'MODERADAMENTE_ATIVO', 'MUITO_ATIVO', 'EXTREMAMENTE_ATIVO', name='nivelatividadeenum', create_type=False)
-objetivo_enum_type = postgresql.ENUM('PERDER_PESO', 'MANTER_PESO', 'GANHAR_MASSA', name='objetivoenum', create_type=False)
+# Definir os tipos ENUM do PostgreSQL com VALORES MINÚSCULOS
+genero_enum_type = postgresql.ENUM(
+    'masculino', 'feminino', 'outro', 'prefiro_nao_dizer', 
+    name='generoenum', create_type=False
+)
+nivel_atividade_enum_type = postgresql.ENUM(
+    'sedentario', 'levemente_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo', 
+    name='nivelatividadeenum', create_type=False
+)
+objetivo_enum_type = postgresql.ENUM(
+    'perder_peso', 'manter_peso', 'ganhar_massa', 
+    name='objetivoenum', create_type=False
+)
 
 # revision identifiers, used by Alembic.
 revision: str = 'a5c35be478ca'
@@ -22,8 +31,9 @@ down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+
 def upgrade() -> None:
-    print("DEBUG MIGRATION: Executando upgrade() COMPLETO.")
+    print("DEBUG MIGRATION: Executando upgrade() COMPLETO com ENUMs minúsculos.")
     # ### Criar os tipos ENUM primeiro ###
     genero_enum_type.create(op.get_bind(), checkfirst=True)
     nivel_atividade_enum_type.create(op.get_bind(), checkfirst=True)
@@ -83,6 +93,7 @@ def upgrade() -> None:
     )
     print("DEBUG MIGRATION: Tabela 'itens_refeicao' criada.")
     # ### end Alembic commands ###
+
 
 def downgrade() -> None:
     print("DEBUG MIGRATION: Executando downgrade() COMPLETO.")

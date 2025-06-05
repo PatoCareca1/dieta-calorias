@@ -6,7 +6,7 @@ import src.database as database
 from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao
 
 # **Garante que as tabelas existem assim que o módulo é carregado**
-database.Base.metadata.create_all(bind=database.engine)
+# database.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="API Dieta-Calorias", version="0.1.0")
 
