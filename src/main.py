@@ -1,21 +1,27 @@
-# src/main.py
-import uvicorn
 from fastapi import FastAPI
+from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao,planos_alimentares
+from src.api.routers import auth
+from src import database, models
 
-import src.database as database
-from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao
 
-# **Garante que as tabelas existem assim que o módulo é carregado**
-database.Base.metadata.create_all(bind=database.engine)
+app = FastAPI(
+    title="API de Dieta e Calorias",
+    description="Uma API para ajudar no gerenciamento de dietas e contagem de calorias.",
+    version="0.1.0",
+)
 
-app = FastAPI(title="API Dieta-Calorias", version="0.1.0")
-
-# Routers
+app.include_router(auth.router)   
 app.include_router(users.router)
-app.include_router(calorias.router)
 app.include_router(alimentos.router)
 app.include_router(refeicoes.router)
 app.include_router(itens_refeicao.router)
+app.include_router(calorias.router)
+app.include_router(planos_alimentares.router)
 
-if __name__ == "__main__":
-    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.get("/", tags=["Root"])
+def read_root():
+    """
+    Endpoint raiz da API.
+    """
+    return {"message": "Bem-vindo à API de Dieta e Calorias!"}
