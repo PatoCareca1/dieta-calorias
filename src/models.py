@@ -1,11 +1,9 @@
-# src/models.py
 import enum
-import sqlalchemy as sa # <--- IMPORT ADICIONADO
+import sqlalchemy as sa 
 from sqlalchemy import Column, Integer, String, Boolean, Date, Float, Enum as SQLAlchemyEnum, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
-# Definições dos Enums CORRIGIDAS (nomes dos membros em minúsculo)
 class GeneroEnum(enum.Enum):
     masculino = "masculino"
     feminino = "feminino"
@@ -61,7 +59,22 @@ class ItemRefeicao(Base):
     refeicao = relationship("Refeicao", back_populates="itens_refeicao")
     alimento = relationship("Alimento", back_populates="itens_refeicao")
 
+class PlanoAlimentar(Base):
+    __tablename__ = "planos_alimentares"
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Campos calculados da dieta
+    tmb = Column(Float, nullable=False)
+    calorias_objetivo = Column(Float, nullable=False)
+    proteinas_g = Column(Float, nullable=False)
+    carboidratos_g = Column(Float, nullable=False)
+    gorduras_g = Column(Float, nullable=False)
+    data_criacao = Column(Date, default=sa.func.current_date(), nullable=False)
 
+    # Relacionamento com o usuário
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), unique=True, nullable=False, index=True)
+    usuario = relationship("Usuario", back_populates="plano_alimentar")
+    
 class Usuario(Base):
     __tablename__ = "usuarios"
 
@@ -70,18 +83,15 @@ class Usuario(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, server_default=sa.text('true')) # 'sa' agora está definido
-    
     peso_kg = Column(Float, nullable=True)
     altura_cm = Column(Integer, nullable=True)
     data_nascimento = Column(Date, nullable=True)
-    
-    # SQLAlchemyEnum usará os Enums Python corrigidos
-    # e os nomes dos tipos no banco de dados definidos na migração Alembic
     genero = Column(SQLAlchemyEnum(GeneroEnum, name="generoenum", native_enum=True, create_constraint=True), nullable=True) 
     nivel_atividade = Column(SQLAlchemyEnum(NivelAtividadeEnum, name="nivelatividadeenum", native_enum=True, create_constraint=True), nullable=True)
     objetivo = Column(SQLAlchemyEnum(ObjetivoEnum, name="objetivoenum", native_enum=True, create_constraint=True), nullable=True)
-    
     restricoes_alimentares = Column(String, nullable=True)
     observacoes = Column(String, nullable=True)
-
+    is_admin = Column(Boolean, default=False, nullable=False)
     refeicoes = relationship("Refeicao", back_populates="usuario")
+    plano_alimentar = relationship("PlanoAlimentar", back_populates="usuario", uselist=False, cascade="all, delete-orphan")
+

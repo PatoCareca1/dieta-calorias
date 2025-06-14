@@ -1,26 +1,24 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 from typing import Optional, List
-
-# Importar Enums dos seus modelos SQLAlchemy
 from src.models import GeneroEnum, NivelAtividadeEnum, ObjetivoEnum 
 
-# ----- Schemas de Alimento (Definidos primeiro para clareza) -----
+# ----- Schemas de Alimento -----
 class AlimentoBase(BaseModel):
     nome: str
     calorias_por_porcao: float 
-    porcao_gramas: float = Field(default=100.0) # No seu modelo é porcao_gramas
-    proteinas: Optional[float] = Field(None, alias="proteinas_g") # Alias para corresponder ao modelo
-    carboidratos: Optional[float] = Field(None, alias="carboidratos_g") # Alias para corresponder ao modelo
-    gorduras: Optional[float] = Field(None, alias="gorduras_g") # Alias para corresponder ao modelo
+    porcao_gramas: float = Field(default=100.0)
+    proteinas: Optional[float] = Field(None, alias="proteinas_g")
+    carboidratos: Optional[float] = Field(None, alias="carboidratos_g")
+    gorduras: Optional[float] = Field(None, alias="gorduras_g")
     marca: Optional[str] = None
 
     class Config:
-        from_attributes = True # ATUALIZADO de orm_mode
-        populate_by_name = True # Permite usar 'proteinas_g' ao criar a partir do modelo ORM
+        from_attributes = True
+        populate_by_name = True
 
 class AlimentoCreate(AlimentoBase):
-    pass # Herda todos os campos de AlimentoBase
+    pass
 
 class AlimentoRead(AlimentoBase):
     id: int
@@ -28,28 +26,25 @@ class AlimentoRead(AlimentoBase):
 # ----- Schemas de ItemRefeicao -----
 class ItemRefeicaoBase(BaseModel):
     alimento_id: int
-    quantidade: float # Corresponde a 'quantidade' no seu modelo ItemRefeicao
+    quantidade: float
 
 class ItemRefeicaoCreate(ItemRefeicaoBase):
-    # id_refeicao será provavelmente passado no path ou gerenciado pelo endpoint
     pass
 
 class ItemRefeicaoRead(ItemRefeicaoBase):
     id: int
-    # Se quiser mostrar detalhes do alimento aqui, o AlimentoRead já está definido
     alimento: Optional[AlimentoRead] = None 
 
     class Config:
-        from_attributes = True # ATUALIZADO
+        from_attributes = True
 
 # ----- Schemas de Refeição -----
 class RefeicaoBase(BaseModel):
-    nome: str # Nome principal da refeição (ex: "Café da Manhã da Semana")
+    nome: str
     data: date
-    horario: Optional[str] = None # Ex: "08:00", "Manhã"
+    horario: Optional[str] = None
 
 class RefeicaoCreate(RefeicaoBase):
-    # usuario_id será adicionado no CRUD, vindo do usuário autenticado
     pass
 
 class RefeicaoRead(RefeicaoBase):
@@ -58,14 +53,32 @@ class RefeicaoRead(RefeicaoBase):
     itens_refeicao: List[ItemRefeicaoRead] = []
 
     class Config:
-        from_attributes = True # ATUALIZADO
+        from_attributes = True
 
+# ----- Schemas para PlanoAlimentar -----
+class PlanoAlimentarBase(BaseModel):
+    tmb: float # Taxa metabolica basal
+    calorias_objetivo: float
+    proteinas_g: float
+    carboidratos_g: float
+    gorduras_g: float
+
+class PlanoAlimentarCreate(PlanoAlimentarBase):
+    pass 
+
+class PlanoAlimentarRead(PlanoAlimentarBase):
+    id: int
+    usuario_id: int
+    data_criacao: date
+
+    class Config:
+        from_attributes = True
+        
 # ----- Schemas de Usuário -----
 class UsuarioBase(BaseModel):
     nome: Optional[str] = None
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = True
-    
     peso_kg: Optional[float] = Field(None, gt=0, description="Peso em quilogramas")
     altura_cm: Optional[int] = Field(None, gt=0, description="Altura em centímetros")
     data_nascimento: Optional[date] = None
@@ -74,17 +87,17 @@ class UsuarioBase(BaseModel):
     objetivo: Optional[ObjetivoEnum] = None
     restricoes_alimentares: Optional[str] = None
     observacoes: Optional[str] = None
+    is_admin : Optional[bool] = False
 
     class Config:
-        from_attributes = True # ATUALIZADO
+        from_attributes = True
         use_enum_values = True 
-
 
 class UsuarioCreate(UsuarioBase):
     nome: str 
     email: EmailStr
     senha: str = Field(..., min_length=8)
-
+    is_admin : bool = False
 
 class UsuarioUpdate(BaseModel): 
     nome: Optional[str] = None
@@ -102,19 +115,26 @@ class UsuarioUpdate(BaseModel):
     observacoes: Optional[str] = None
 
     class Config:
-        from_attributes = True # ATUALIZADO
+        from_attributes = True
         use_enum_values = True
 
 
 class UsuarioRead(UsuarioBase):
     id: int
     refeicoes: List[RefeicaoRead] = []
+    plano_alimentar: Optional[PlanoAlimentarRead] = None
 
-    # A senha não é retornada
 
 # ----- Outros Schemas -----
-class ResumoDiario(BaseModel): # Supondo que este não precise de from_attributes se não mapear de ORM
+class ResumoDiario(BaseModel):
     data: date
     total_calorias: float
     status: str = Field(..., example="dentro")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
 
