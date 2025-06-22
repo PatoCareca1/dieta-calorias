@@ -1,0 +1,61 @@
+// frontend/src/styles/custom.scss
+
+// =========================================================================
+//  1. DEFINIÇÃO DE VARIÁVEIS 
+// =========================================================================
+
+// Cores (Palette FitTrack)
+$color-primary:    #00BFA6 !default; // Azul Turquesa
+$color-secondary:  #7ED957 !default; // Verde Vital
+$color-accent:     #FFD43B !default; // Amarelo Energia
+
+// Neutros
+$neutral-dark:     #1C1C1E !default; // Cinza Carvão (texto primário)
+$neutral-medium:   #666666 !default; // Cinza Médio (texto secundário)
+$neutral-light:    #D1D1D6 !default; // Cinza Claro (bordas/divisórias)
+$neutral-bg:       #F9FAFB !default; // Off-White (fundo principal)
+$neutral-white:    #FFFFFF !default; // Branco Puro (cards, containers)
+
+// Semânticas
+$color-success:    #4CAF50 !default; // Verde OK
+$color-warning:    #FFA000 !default; // Laranja Aviso
+$color-error:      #F44336 !default; // Vermelho Erro
+$color-info:       #42A5F5 !default; // Azul Claro Informação
+
+// Tipografia
+$font-family-sans-serif: 'Poppins', sans-serif !default;
+$body-font-size:         1rem !default;
+
+// Override de variáveis do Bootstrap ANTES da importação
+$body-bg:        $neutral-bg;
+$body-color:     $neutral-dark;
+$primary:        $color-primary;
+$secondary:      $color-secondary;
+$success:        $color-success;
+$warning:        $color-warning;
+$danger:         $color-error;
+$info:           $color-info;
+$light:          $neutral-bg;
+$dark:           $neutral-dark;
+
+
+// =========================================================================
+//  2. IMPORTAÇÃO DO BOOTSTRAP 
+// =========================================================================
+@import 'bootstrap/scss/bootstrap';
+
+
+// =========================================================================
+//  3. ESTILOS CUSTOMIZADOS ADICIONAIS 
+// =========================================================================
+
+.btn-accent {
+  @include button-variant(
+    $color-accent,    // cor de fundo
+    darken($color-accent, 8%), // fundo no hover
+    $neutral-dark,    // cor do texto
+    $neutral-dark,    // cor do texto no hover
+    $color-accent,    // cor da borda
+    darken($color-accent, 8%)  // borda no hover
+  );
+}
