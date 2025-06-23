@@ -1,7 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 from typing import Optional, List
-from src.models import GeneroEnum, NivelAtividadeEnum, ObjetivoEnum 
+from src.models import GeneroEnum, NivelAtividadeEnum, ObjetivoEnum
+from ..models import GrupoMuscularEnum
 
 # ----- Schemas de Alimento -----
 class AlimentoBase(BaseModel):
@@ -124,8 +125,60 @@ class UsuarioRead(UsuarioBase):
     refeicoes: List[RefeicaoRead] = []
     plano_alimentar: Optional[PlanoAlimentarRead] = None
 
+# --- Schemas para Exercicio ---
 
+class ExercicioBase(BaseModel):
+    nome: str
+    grupo_muscular: GrupoMuscularEnum
+    descricao: Optional[str] = None
+
+class ExercicioCreate(ExercicioBase):
+    pass
+
+class Exercicio(ExercicioBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# --- Schemas para ItemTreino (o exercício dentro de um treino) ---
+
+class ItemTreinoBase(BaseModel):
+    exercicio_id: int
+    series: Optional[int] = None
+    repeticoes: Optional[str] = None
+    descanso_segundos: Optional[int] = None
+
+class ItemTreinoCreate(ItemTreinoBase):
+    pass
+
+class ItemTreino(ItemTreinoBase):
+    id: int
+    treino_id: int
+    exercicio: Exercicio # Incluímos o schema do exercício para mostrar os detalhes
+
+    class Config:
+        from_attributes = True
+
+
+# --- Schemas para Treino ---
+
+class TreinoBase(BaseModel):
+    nome: str
+
+class TreinoCreate(TreinoBase):
+    pass
+
+class Treino(TreinoBase):
+    id: int
+    usuario_id: int
+    itens: List[ItemTreino] = [] # Um treino terá uma lista de itens de treino
+
+    class Config:
+        from_attributes = True
+        
 # ----- Outros Schemas -----
+
 class ResumoDiario(BaseModel):
     data: date
     total_calorias: float

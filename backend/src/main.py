@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao, planos_alimentares, auth
+from src.api.routers import users, calorias, alimentos, refeicoes, itens_refeicao, planos_alimentares, auth, exercicios, treinos
 
 app = FastAPI(
     title="API de Dieta e Calorias",
@@ -28,6 +28,8 @@ app.include_router(refeicoes.router)
 app.include_router(itens_refeicao.router)
 app.include_router(calorias.router)
 app.include_router(planos_alimentares.router)
+app.include_router(exercicios.router)
+app.include_router(treinos.router)
 
 @app.get("/", tags=["Root"])
 def read_root():
