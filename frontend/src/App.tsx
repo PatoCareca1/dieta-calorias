@@ -9,6 +9,7 @@ import AdminAlimentosPage from './pages/admin/AdminAlimentosPage';
 import AdminUsuariosPage from './pages/admin/AdminUsuariosPage';
 import CalculadoraPage from './pages/CalculadoraPage';
 import AuthPage from './pages/AuthPage';
+import MontarTreinoPage from './pages/MontarTreinoPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/calculadora" element={<CalculadoraPage />} /> 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<UserDashboardPage />} />
+          <Route path="/montar-treino" element={<MontarTreinoPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="alimentos" element={<AdminAlimentosPage />} />

@@ -2,7 +2,8 @@
 
 from sqlalchemy.orm import Session
 from .. import models
-from .. import api_schemas as schemas 
+# CORREÇÃO: Apontamos para o local correto do schemas (dentro da pasta 'api')
+from ..api import schemas
 
 # --- Funções de CRUD para Treino ---
 
@@ -43,3 +44,20 @@ def add_exercicio_to_treino(db: Session, item: schemas.ItemTreinoCreate, treino_
     db.commit()
     db.refresh(db_item_treino)
     return db_item_treino
+
+# --- Funções de CRUD para ItemTreino ---
+def get_item_treino(db: Session, item_id: int):
+    """
+    Busca um item de treino específico pelo seu ID.
+    """
+    return db.query(models.ItemTreino).filter(models.ItemTreino.id == item_id).first()
+
+def delete_item_treino(db: Session, item_id: int):
+    """
+    Deleta um item de treino do banco de dados.
+    """
+    db_item = get_item_treino(db, item_id)
+    if db_item:
+        db.delete(db_item)
+        db.commit()
+    return db_item

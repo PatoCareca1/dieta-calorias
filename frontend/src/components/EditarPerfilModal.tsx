@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { Modal, Button, Form, Spinner, Alert, Col, Row } from 'react-bootstrap';
 import api from '../services/api';
-import { OBJETIVOS, NIVEIS_ATIVIDADE, GENEROS } from '../models'; // Importando as arrays para os selects
-import type { FormEvent, ChangeEvent } from 'react';
+import { OBJETIVOS, NIVEIS_ATIVIDADE, GENEROS } from '../models';
 import type { Usuario } from '../models';
 
 interface EditarPerfilModalProps {
@@ -13,7 +13,6 @@ interface EditarPerfilModalProps {
 }
 
 const EditarPerfilModal = ({ show, onHide, userData, onUpdate }: EditarPerfilModalProps) => {
-  // Correção 3: Tipamos explicitamente o estado do formulário.
   const [formData, setFormData] = useState<Partial<Usuario>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -37,11 +36,16 @@ const EditarPerfilModal = ({ show, onHide, userData, onUpdate }: EditarPerfilMod
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
-    // Correção 4: Converte o valor para número se o tipo do input for 'number'.
-    // Isso resolve o erro de 'string' não ser atribuível a 'number'.
-    const finalValue = type === 'number'
-      ? (value === '' ? null : parseFloat(value))
-      : (value === '' ? null : value);
+    let finalValue: string | number | null = value;
+
+    // Se o valor for uma string vazia (ex: "Selecione..."), convertemos para null
+    if (value === '') {
+      finalValue = null;
+    } 
+    // Se o input for do tipo 'number' e não estiver vazio, convertemos para número
+    else if (type === 'number') {
+      finalValue = parseFloat(value);
+    }
 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
@@ -63,6 +67,7 @@ const EditarPerfilModal = ({ show, onHide, userData, onUpdate }: EditarPerfilMod
   };
   
   const formatLabel = (value: string) => {
+    if (!value) return '';
     return value.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
   };
 
@@ -75,50 +80,82 @@ const EditarPerfilModal = ({ show, onHide, userData, onUpdate }: EditarPerfilMod
         <Modal.Body>
           {error && <Alert variant="danger">{error}</Alert>}
           
-          {/* O restante do JSX continua similar, mas agora populamos os selects com as arrays */}
           <Row>
-            {/* Colunas para Nome e Data de Nascimento */}
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nome</Form.Label>
+                <Form.Control type="text" name="nome" value={formData.nome || ''} onChange={handleChange} />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Data de Nascimento</Form.Label>
+                <Form.Control type="date" name="data_nascimento" value={formData.data_nascimento || ''} onChange={handleChange} />
+              </Form.Group>
+            </Col>
           </Row>
+
           <Row>
-            <Col md={6}><Form.Group className="mb-3">
+            <Col md={6}>
+              <Form.Group className="mb-3">
                 <Form.Label>Peso (kg)</Form.Label>
-                <Form.Control type="number" step="0.1" name="peso_kg" value={formData.peso_kg ?? ''} onChange={handleChange} />
-            </Form.Group></Col>
-            <Col md={6}><Form.Group className="mb-3">
+                <Form.Control type="number" step="0.1" name="peso_kg" value={formData.peso_kg || ''} onChange={handleChange} />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
                 <Form.Label>Altura (cm)</Form.Label>
-                <Form.Control type="number" name="altura_cm" value={formData.altura_cm ?? ''} onChange={handleChange} />
-            </Form.Group></Col>
+                <Form.Control type="number" name="altura_cm" value={formData.altura_cm || ''} onChange={handleChange} />
+              </Form.Group>
+            </Col>
           </Row>
+
           <Row>
-            <Col md={4}><Form.Group className="mb-3">
-              <Form.Label>Gênero</Form.Label>
-              <Form.Select name="genero" value={formData.genero ?? ''} onChange={handleChange}>
-                <option value="">Selecione...</option>
-                {GENEROS.map(value => (
-                  <option key={value} value={value}>{formatLabel(value)}</option>
-                ))}
-              </Form.Select>
-            </Form.Group></Col>
-            <Col md={4}><Form.Group className="mb-3">
-              <Form.Label>Nível de Atividade</Form.Label>
-              <Form.Select name="nivel_atividade" value={formData.nivel_atividade ?? ''} onChange={handleChange}>
-                <option value="">Selecione...</option>
-                {NIVEIS_ATIVIDADE.map(value => (
-                  <option key={value} value={value}>{formatLabel(value)}</option>
-                ))}
-              </Form.Select>
-            </Form.Group></Col>
-            <Col md={4}><Form.Group className="mb-3">
-              <Form.Label>Objetivo Principal</Form.Label>
-              <Form.Select name="objetivo" value={formData.objetivo ?? ''} onChange={handleChange}>
-                <option value="">Selecione...</option>
-                {OBJETIVOS.map(value => (
-                  <option key={value} value={value}>{formatLabel(value)}</option>
-                ))}
-              </Form.Select>
-            </Form.Group></Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gênero</Form.Label>
+                <Form.Select name="genero" value={formData.genero || ''} onChange={handleChange}>
+                  <option value="">Selecione...</option>
+                  {GENEROS.map(value => (
+                    <option key={value} value={value}>{formatLabel(value)}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nível de Atividade</Form.Label>
+                <Form.Select name="nivel_atividade" value={formData.nivel_atividade || ''} onChange={handleChange}>
+                  <option value="">Selecione...</option>
+                  {NIVEIS_ATIVIDADE.map(value => (
+                    <option key={value} value={value}>{formatLabel(value)}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Objetivo Principal</Form.Label>
+                <Form.Select name="objetivo" value={formData.objetivo || ''} onChange={handleChange}>
+                  <option value="">Selecione...</option>
+                  {OBJETIVOS.map(value => (
+                    <option key={value} value={value}>{formatLabel(value)}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
           </Row>
-          {/* Outros campos como restrições e observações */}
+          
+          <Form.Group className="mb-3">
+            <Form.Label>Restrições Alimentares (opcional)</Form.Label>
+            <Form.Control as="textarea" rows={2} name="restricoes_alimentares" value={formData.restricoes_alimentares || ''} onChange={handleChange} />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Observações Adicionais (opcional)</Form.Label>
+            <Form.Control as="textarea" rows={2} name="observacoes" value={formData.observacoes || ''} onChange={handleChange} />
+          </Form.Group>
+
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>Cancelar</Button>

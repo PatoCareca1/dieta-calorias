@@ -1,6 +1,9 @@
+# Em backend/src/crud/exercicio.py
+
 from sqlalchemy.orm import Session
 from .. import models
-from .. import schemas as api_schemas 
+# CORREÇÃO: Apontamos para o local correto do schemas (dentro da pasta 'api')
+from ..api import schemas
 
 def get_exercicio(db: Session, exercicio_id: int):
     """
@@ -20,7 +23,7 @@ def get_exercicios(db: Session, skip: int = 0, limit: int = 100):
     """
     return db.query(models.Exercicio).offset(skip).limit(limit).all()
 
-def create_exercicio(db: Session, exercicio: api_schemas.ExercicioCreate):
+def create_exercicio(db: Session, exercicio: schemas.ExercicioCreate):
     """
     Cria um novo exercício no banco de dados.
     """
@@ -33,5 +36,3 @@ def create_exercicio(db: Session, exercicio: api_schemas.ExercicioCreate):
     db.commit()
     db.refresh(db_exercicio)
     return db_exercicio
-
-# Futuramente - funções de update e delete aqui.

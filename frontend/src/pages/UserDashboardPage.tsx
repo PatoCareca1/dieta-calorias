@@ -1,6 +1,7 @@
 // frontend/src/pages/UserDashboardPage.tsx
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // 1. IMPORTAMOS O COMPONENTE LINK
 import type { Usuario, PlanoAlimentar } from '../models'; 
 import { Container, Card, Button, Spinner, Alert, Row, Col } from 'react-bootstrap';
 import EditarPerfilModal from '../components/EditarPerfilModal'; 
@@ -11,8 +12,6 @@ const UserDashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
-
-    // Estado para o feedback do botão de calcular
     const [isCalculating, setIsCalculating] = useState(false);
 
     useEffect(() => {
@@ -36,19 +35,16 @@ const UserDashboardPage = () => {
         setShowEditModal(false);
     };
 
-    // Função para chamar a API de cálculo de dieta
     const handleCalculateDiet = async () => {
         setIsCalculating(true);
         setError('');
         try {
             const response = await api.post<PlanoAlimentar>('/planos-alimentares/me/calcular');
-            // Atualiza o estado do usuário com os dados do plano alimentar recebido
             setUserData(prevUserData => {
                 if (!prevUserData) return null;
                 return { ...prevUserData, plano_alimentar: response.data };
             });
         } catch (err: any) {
-            // O erro 400 da API indica que o perfil está incompleto
             const detail = err.response?.data?.detail || "Ocorreu um erro ao calcular a dieta.";
             setError(detail);
         } finally {
@@ -58,10 +54,15 @@ const UserDashboardPage = () => {
     
     if (loading) return <Container className="text-center mt-5"><Spinner animation="border" /></Container>;
 
-    // O userData?.nome acessa o nome de forma segura, mesmo que userData seja nulo
     return (
         <Container className="mt-4" style={{ maxWidth: '900px' }}>
-            <h2 className="mb-4">Dashboard de {userData?.nome}</h2>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2 className="mb-0">Dashboard de {userData?.nome}</h2>
+                {/* 2. ADICIONAMOS O BOTÃO/LINK PARA A NOVA PÁGINA */}
+                <Link to="/montar-treino" className="btn btn-success">
+                    Montar Meu Treino
+                </Link>
+            </div>
             
             {error && <Alert variant="danger">{error}</Alert>}
 
@@ -87,7 +88,6 @@ const UserDashboardPage = () => {
                     <Card className="mb-4">
                         <Card.Header as="h5">Meu Plano Alimentar</Card.Header>
                         <Card.Body>
-                            {/* Renderização condicional: só mostra o plano se ele existir */}
                             {userData?.plano_alimentar ? (
                                 <div>
                                     <p><strong>Meta de Calorias:</strong> {userData.plano_alimentar.calorias_objetivo.toFixed(0)} kcal</p>

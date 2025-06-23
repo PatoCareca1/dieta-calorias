@@ -1,17 +1,10 @@
-// frontend/src/models.ts
-
-// Usando "união de literais de string" em vez de enum.
-// Isso é mais moderno, tem melhor performance e é 100% compatível com configurações estritas.
 export type Objetivo = "perder_peso" | "manter_peso" | "ganhar_massa";
 export type NivelAtividade = "sedentario" | "levemente_ativo" | "moderadamente_ativo" | "muito_ativo" | "extremamente_ativo";
 export type Genero = "masculino" | "feminino" | "outro" | "prefiro_nao_dizer";
-
-// Criamos arrays constantes para iterar facilmente na UI (nos nossos <select>).
 export const OBJETIVOS: Objetivo[] = ["perder_peso", "manter_peso", "ganhar_massa"];
 export const NIVEIS_ATIVIDADE: NivelAtividade[] = ["sedentario", "levemente_ativo", "moderadamente_ativo", "muito_ativo", "extremamente_ativo"];
 export const GENEROS: Genero[] = ["masculino", "feminino", "outro", "prefiro_nao_dizer"];
 
-// As interfaces continuam as mesmas, mas agora usam os novos tipos.
 export interface PlanoAlimentar {
   id: number;
   tmb: number;
@@ -38,4 +31,40 @@ export interface Usuario {
   restricoes_alimentares: string | null;
   observacoes: string | null;
   plano_alimentar: PlanoAlimentar | null;
+}
+
+export interface Exercicio {
+  id: number;
+  nome: string;
+  grupo_muscular: string;
+  descricao?: string;
+}
+
+export interface ItemTreino {
+  id: number;
+  exercicio_id: number;
+  series?: number;
+  repeticoes?: string;
+  descanso_segundos?: number;
+  exercicio: Exercicio; 
+}
+
+export interface Treino {
+  id: number;
+  nome: string;
+  usuario_id: number;
+  itens: ItemTreino[];
+}
+
+export interface ItemTreinoCreate {
+    exercicio_id: number;
+    series?: number;
+    repeticoes?: string;
+    descanso_segundos?: number;
+}
+
+export interface ExercicioCreate {
+  nome: string;
+  grupo_muscular: string;
+  descricao?: string;
 }

@@ -86,3 +86,24 @@ def add_exercicio_a_treino(
         raise HTTPException(status_code=404, detail="Exercício não encontrado")
 
     return crud.treino.add_exercicio_to_treino(db=db, item=item, treino_id=treino_id)
+
+@router.delete("/{treino_id}/exercicios/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_exercicio_do_treino(
+    treino_id: int,
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_active_user)
+):
+    """
+    Remove um exercício de um plano de treino.
+    """
+    db_treino = crud.treino.get_treino(db, treino_id=treino_id)
+    if not db_treino or db_treino.usuario_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Treino não encontrado")
+
+    db_item = crud.treino.get_item_treino(db, item_id=item_id)
+    if not db_item or db_item.treino_id != db_treino.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercício não encontrado neste treino")
+    
+    crud.treino.delete_item_treino(db, item_id=item_id)
+    return
