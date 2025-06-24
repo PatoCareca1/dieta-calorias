@@ -1,20 +1,35 @@
-# Em backend/src/api/routers/treinos.py
+# src/api/routers/treinos.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from ... import crud, models
-from .. import schemas
+from src.api import schemas
 from ..dependencies import get_db
-from ..security import get_current_active_user
+# 1. Importando as duas funções de segurança necessárias do local correto
+from ..security import get_current_active_user, get_current_admin_user
 
 router = APIRouter(
     prefix="/treinos",
-    tags=["treinos"],
-    dependencies=[Depends(get_current_active_user)], # Todos endpoints aqui exigem login
+    tags=["Treinos"],
     responses={404: {"description": "Não encontrado"}},
 )
+
+# 2. ENDPOINT ADICIONADO para o administrador visualizar todos os treinos
+@router.get("/all/", response_model=List[schemas.Treino])
+def read_all_treinos(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_admin: models.Usuario = Depends(get_current_admin_user)
+):
+    """
+    (Admin) Retorna uma lista de todos os treinos de todos os usuários.
+    """
+    treinos = crud.treino.get_treinos(db, skip=skip, limit=limit)
+    return treinos
+
 
 @router.post("/", response_model=schemas.Treino, status_code=status.HTTP_201_CREATED)
 def create_treino(
@@ -24,7 +39,6 @@ def create_treino(
 ):
     """
     Cria um novo plano de treino para o usuário logado.
-    - **nome**: Nome do treino (ex: "Treino A - Peito e Tríceps").
     """
     return crud.treino.create_treino_for_usuario(
         db=db, treino=treino, usuario_id=current_user.id
@@ -58,8 +72,7 @@ def read_treino(
     if db_treino is None:
         raise HTTPException(status_code=404, detail="Treino não encontrado")
     
-    # Validação de segurança: o usuário só pode ver o seu próprio treino
-    if db_treino.usuario_id != current_user.id:
+    if db_treino.usuario_id != current_user.id and not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não permitido")
         
     return db_treino
@@ -80,7 +93,6 @@ def add_exercicio_a_treino(
     if db_treino.usuario_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não permitido")
     
-    # Verifica se o exercício que está sendo adicionado realmente existe
     db_exercicio = crud.exercicio.get_exercicio(db, exercicio_id=item.exercicio_id)
     if db_exercicio is None:
         raise HTTPException(status_code=404, detail="Exercício não encontrado")
@@ -106,4 +118,4 @@ def remove_exercicio_do_treino(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercício não encontrado neste treino")
     
     crud.treino.delete_item_treino(db, item_id=item_id)
-    return
+    return None

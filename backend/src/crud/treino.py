@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from .. import models
-# CORREÇÃO: Apontamos para o local correto do schemas (dentro da pasta 'api')
+from typing import List
 from ..api import schemas
 
 # --- Funções de CRUD para Treino ---
@@ -61,3 +61,9 @@ def delete_item_treino(db: Session, item_id: int):
         db.delete(db_item)
         db.commit()
     return db_item
+
+def get_treinos(db: Session, skip: int = 0, limit: int = 100) -> List[models.Treino]:
+    """
+    Retorna uma lista de todos os treinos de todos os usuários.
+    """
+    return db.query(models.Treino).offset(skip).limit(limit).all()

@@ -1,47 +1,96 @@
+# src/api/routers/refeicoes.py
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from src.crud.refeicao import (
-    create_refeicao, get_refeicao_by_id,
-    update_refeicao, delete_refeicao
-)
+from typing import List
+
+from src import models
+from src.api import schemas
+from src.crud import refeicao as crud_refeicao
 from src.api.dependencies import get_db
-from src.api.schemas import RefeicaoCreate, RefeicaoRead
-from src.models import Usuario
+# 1. Importando as funções de segurança do local correto
+from src.api.security import get_current_active_user, get_current_admin_user
 
-router = APIRouter(prefix="/refeicoes", tags=["Refeições"])
+router = APIRouter(
+    prefix="/refeicoes", 
+    tags=["Refeições"]
+)
 
-@router.post("/", response_model=RefeicaoRead, status_code=status.HTTP_201_CREATED)
-def api_create_refeicao(data: RefeicaoCreate, db: Session = Depends(get_db)):
-    user = db.query(Usuario).get(data.user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    ref = create_refeicao(db,
-                         usuario=user,
-                         data=data.data,
-                         tipo_refeicao=data.tipo_refeicao)
-    return ref
+# 2. ENDPOINT ADICIONADO para o administrador visualizar todas as refeições
+@router.get("/", response_model=List[schemas.RefeicaoRead])
+def read_all_refeicoes(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.Usuario = Depends(get_current_admin_user)
+):
+    """
+    (Admin) Retorna uma lista de todas as refeições de todos os usuários.
+    """
+    refeicoes = crud_refeicao.get_refeicoes(db, skip=skip, limit=limit)
+    return refeicoes
 
-@router.get("/{id_refeicao}", response_model=RefeicaoRead)
-def api_get_refeicao(id_refeicao: int, db: Session = Depends(get_db)):
-    ref = get_refeicao_by_id(db, id_refeicao)
-    if not ref:
+# 3. ENDPOINT AJUSTADO: Criar uma refeição para o usuário LOGADO
+@router.post("/", response_model=schemas.RefeicaoRead, status_code=status.HTTP_201_CREATED)
+def create_refeicao_for_current_user(
+    refeicao_in: schemas.RefeicaoCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_active_user)
+):
+    """
+    Cria uma nova refeição para o usuário autenticado.
+    """
+    return crud_refeicao.create_refeicao_for_user(db=db, refeicao_in=refeicao_in, usuario_id=current_user.id)
+
+# 4. ENDPOINT AJUSTADO: Buscar uma refeição específica com validação de permissão
+@router.get("/{refeicao_id}", response_model=schemas.RefeicaoRead)
+def read_refeicao(
+    refeicao_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_active_user)
+):
+    """
+    Busca uma refeição específica. Um usuário só pode ver suas próprias refeições.
+    """
+    db_refeicao = crud_refeicao.get_refeicao(db, refeicao_id=refeicao_id)
+    if db_refeicao is None:
         raise HTTPException(status_code=404, detail="Refeição não encontrada")
-    return ref
+    if db_refeicao.usuario_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não permitido")
+    return db_refeicao
 
-@router.put("/{id_refeicao}", response_model=RefeicaoRead)
-def api_update_refeicao(id_refeicao: int, data: RefeicaoCreate, db: Session = Depends(get_db)):
-    ref = get_refeicao_by_id(db, id_refeicao)
-    if not ref:
+# 5. ENDPOINT AJUSTADO: Atualizar uma refeição com validação de permissão
+@router.put("/{refeicao_id}", response_model=schemas.RefeicaoRead)
+def update_refeicao(
+    refeicao_id: int, 
+    refeicao_in: schemas.RefeicaoUpdate, 
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_active_user)
+):
+    """
+    Atualiza uma refeição. Um usuário só pode atualizar suas próprias refeições.
+    """
+    db_refeicao = crud_refeicao.get_refeicao(db, refeicao_id=refeicao_id)
+    if db_refeicao is None:
         raise HTTPException(status_code=404, detail="Refeição não encontrada")
-    updated = update_refeicao(db,
-                              refeicao=ref,
-                              data=data.data,
-                              tipo_refeicao=data.tipo_refeicao)
-    return updated
+    if db_refeicao.usuario_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não permitido")
+    return crud_refeicao.update_refeicao(db, db_obj=db_refeicao, obj_in=refeicao_in)
 
-@router.delete("/{id_refeicao}", status_code=status.HTTP_204_NO_CONTENT)
-def api_delete_refeicao(id_refeicao: int, db: Session = Depends(get_db)):
-    ref = get_refeicao_by_id(db, id_refeicao)
-    if not ref:
+# 6. ENDPOINT AJUSTADO: Deletar uma refeição com validação de permissão
+@router.delete("/{refeicao_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_refeicao(
+    refeicao_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_active_user)
+):
+    """
+    Deleta uma refeição. Um usuário só pode deletar suas próprias refeições.
+    """
+    db_refeicao = crud_refeicao.get_refeicao(db, refeicao_id=refeicao_id)
+    if db_refeicao is None:
         raise HTTPException(status_code=404, detail="Refeição não encontrada")
-    delete_refeicao(db, ref)
+    if db_refeicao.usuario_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não permitido")
+    crud_refeicao.delete_refeicao(db, id_refeicao=refeicao_id)
+    return None

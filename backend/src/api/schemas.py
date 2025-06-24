@@ -21,6 +21,15 @@ class AlimentoBase(BaseModel):
 class AlimentoCreate(AlimentoBase):
     pass
 
+class AlimentoUpdate(BaseModel):
+    nome: Optional[str] = None
+    calorias_por_porcao: Optional[float] = None
+    porcao_gramas: Optional[float] = None
+    proteinas: Optional[float] = Field(None, alias="proteinas_g")
+    carboidratos: Optional[float] = Field(None, alias="carboidratos_g")
+    gorduras: Optional[float] = Field(None, alias="gorduras_g")
+    marca: Optional[str] = None
+
 class AlimentoRead(AlimentoBase):
     id: int
 
@@ -47,6 +56,11 @@ class RefeicaoBase(BaseModel):
 
 class RefeicaoCreate(RefeicaoBase):
     pass
+
+class RefeicaoUpdate(BaseModel):
+    nome: Optional[str] = None
+    data: Optional[date] = None
+    horario: Optional[str] = None
 
 class RefeicaoRead(RefeicaoBase):
     id: int
@@ -135,6 +149,11 @@ class ExercicioBase(BaseModel):
 class ExercicioCreate(ExercicioBase):
     pass
 
+class ExercicioUpdate(BaseModel):
+    nome: Optional[str] = None
+    grupo_muscular: Optional[GrupoMuscularEnum] = None
+    descricao: Optional[str] = None
+    
 class Exercicio(ExercicioBase):
     id: int
 
